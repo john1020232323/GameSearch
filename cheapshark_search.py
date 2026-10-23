@@ -1,7 +1,6 @@
-import requests
-import json
 import config
 import helper
+import datetime
 from pathlib import Path
 from sys import exit
 
@@ -40,23 +39,15 @@ Store Prices:""")
 def search(query):
     filepath = Path(Path(__file__).parent / "Cheapshark_cache" / f"{query.strip().lower()}.json")
     folder = filepath.parent
+    parameters = {
+        'title': query.strip(),
+    }
+    urlendpoint = config.cheapshark_url + "deals"
 
     if not filepath.exists():
         folder.mkdir(parents=True, exist_ok=True)
-        parameters = {
-            'title': query.strip(),
-        }
 
-        response = requests.get(config.cheapshark_url + "deals", headers=config.headers, params=parameters, timeout = 10)
-
-        response = req_cheapshark_data(response)
-        if response == None:
-            print("No results")
-            return
-        response.append({'search': query.lower().strip()})
-
-        with open(filepath, "w") as file:
-            json.dump(response, file, indent=4)
+        helper.get_response(urlendpoint, filepath, parameters, query, config.headers)
 
         data = helper.load_cache_data(filepath)
         if data == None:
@@ -64,29 +55,24 @@ def search(query):
             return
         
         store_price = check_prices_store(data)
-        display(store_price)
+        display_results(store_price)
     
         print("No JSON exists")
     elif filepath.exists():
         data = helper.load_cache_data(filepath)
-
         if data == None:
             print(f"No results from {filepath.name} cached data")
             return
+        datepast = datetime.datetime.fromisoformat(data[-1]['dateCreated'])
+        datenow = datetime.datetime.now()
+        hours_passed = datenow - datepast
         store_price = check_prices_store(data)
-        display(store_price)
+        if (hours_passed.total_seconds() / 3600) > 1:
+            helper.get_response(urlendpoint, filepath, parameters, query, config.headers)
+            display_results(store_price)
+        else:
+            display_results(store_price)
         print("JSON exists")
-
-
-def req_cheapshark_data(response):
-    if response.status_code != 200:
-        print(f"Error: An error occured, status code: {response.status_code}, check your internet connection.")
-        return
-    try:
-        return response.json()
-    except json.JSONDecodeError:
-        print("Error: Recieved bad response, cant convert to JSON")
-        return None
 
 def check_prices_store(data):
     lst = []
@@ -105,7 +91,7 @@ def check_prices_store(data):
     return lst
 
 
-def display(lst):
+def display_results(lst):
     for item in lst:
         deals = Game_Deals(item['title'], item['normalPrice'], item['stores'])
         deals.display()
