@@ -3,8 +3,6 @@ import json
 import datetime
 import requests
 
-
-
 def check_char_validity(query):
     pattern = r"^[\w\-\. ]+$"
     if match := re.search(pattern, query, re.ASCII):
@@ -40,12 +38,12 @@ def get_response(endpoint, filepath, parameter, query, header= None):
         print("Error: No results")
         return
     if not header:
-        response['search'] = query.lower().strip()
+        response['search'] = query.lower()
         response['dateCreated'] = str(datetime.date.today())
     elif header:
         response.append(
             {
-            'search': query.lower().strip(), 
+            'search': query.lower(), 
             'dateCreated': str(datetime.datetime.now())
             }
         )
@@ -53,3 +51,15 @@ def get_response(endpoint, filepath, parameter, query, header= None):
     with open(filepath, "w", encoding="utf-8") as file:
             json.dump(response, file, indent=4)
     return
+
+def handle_search(search_function):
+    while True:
+        query = input("Title (Q to quit): ").strip()
+        if query.lower() == 'q':
+            print("Thank you!")
+            return
+
+        if check_char_validity(query):
+            search_function(query)
+        else:
+            print("Letters, numbers, dash, underscore, and dot characters for the query only.")

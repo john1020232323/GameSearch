@@ -37,10 +37,10 @@ Store Prices:""")
 
 
 def search(query):
-    filepath = Path(Path(__file__).parent / "Cheapshark_cache" / f"{query.strip().lower()}.json")
+    filepath = Path(Path(__file__).parent / "Cheapshark_cache" / f"{query.lower()}.json")
     folder = filepath.parent
     parameters = {
-        'title': query.strip(),
+        'title': query,
     }
     urlendpoint = config.cheapshark_url + "deals"
 
@@ -70,6 +70,7 @@ def search(query):
         if (hours_passed.total_seconds() / 3600) > 1:
             helper.get_response(urlendpoint, filepath, parameters, query, config.headers)
             display_results(store_price)
+            print("JSON updated")
         else:
             display_results(store_price)
         print("JSON exists")

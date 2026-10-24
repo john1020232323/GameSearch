@@ -35,7 +35,7 @@ Stores:""")
             print(f"""{i}. {store}""")
 
 def search(query):
-    cache_file = Path(Path(__file__).parent / "Rawg_cache" / f"{query.lower().strip()}.json")
+    cache_file = Path(Path(__file__).parent / "Rawg_cache" / f"{query.lower()}.json")
     folder = cache_file.parent
     urlendpoint = config.rawg_url + "games"
     parameter = {
@@ -64,6 +64,7 @@ def search(query):
         if (datenow - datepast).days > 7:
             helper.get_response(urlendpoint, cache_file, parameter, query)
             display_results(data)
+            print("JSON updated")
         else:
             display_results(data)
         print("Json exists, no response burned")
